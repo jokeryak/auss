@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday!</title>
+    
+    <!-- Elegant Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Raleway:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        /* === COLOR PALETTE & VARIABLES === */
+        :root {
+            --bg-color: #121217;
+            --text-main: #f4e8e1;
+            --accent-color: #d4a373;
+            --card-bg: #fafafa;
+            --font-serif: 'Playfair Display', serif;
+            --font-sans: 'Raleway', sans-serif;
+            --font-script: 'Dancing Script', cursive;
+        }
+
+        /* === RESET & GLOBAL === */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+        
+        .script-text { font-family: var(--font-script); color: var(--accent-color); }
+        h1, h2, h3 { font-family: var(--font-serif); font-weight: 400; }
+
+        /* === PARTICLES === */
+        #particle-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0;
+        }
+        .particle {
+            position: absolute; background: rgba(212, 163, 115, 0.3);
+            border-radius: 50%; animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* === BUTTONS === */
+        .btn {
+            background: transparent; color: var(--accent-color);
+            border: 1px solid var(--accent-color); padding: 15px 40px;
+            font-size: 1.1rem; font-family: var(--font-sans);
+            letter-spacing: 2px; text-transform: uppercase;
+            border-radius: 50px; cursor: pointer;
+            transition: all 0.4s ease; position: relative; z-index: 10; margin-top: 30px;
+        }
+        .btn:hover {
+            background: var(--accent-color); color: var(--bg-color);
+            box-shadow: 0 0 20px rgba(212, 163, 115, 0.4);
+        }
+
+        /* === SECTIONS === */
+        section {
+            min-height: 100vh; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 40px 20px;
+            position: relative; z-index: 1;
+        }
+
+        /* Landing Section */
+        #landing { text-align: center; }
+        #landing h1 { font-size: 3.5rem; margin-bottom: 10px; line-height: 1.3; }
+        #landing p { font-size: 1.2rem; letter-spacing: 2px; opacity: 0.8; margin-top: 10px; }
+
+        /* Main Content Wrapper (Hidden initially) */
+        #main-content { 
+            display: none; 
+            opacity: 0; 
+            width: 100%; 
+            transition: opacity 1.5s ease-in-out; 
+        }
+
+        /* Scroll Reveal Utility */
+        .fade-in-section {
+            opacity: 0; transform: translateY(40px);
+            transition: opacity 1s ease-out, transform 1s ease-out;
+            will-change: opacity, visibility, transform; width: 100%;
+        }
+        .fade-in-section.is-visible { opacity: 1; transform: none; }
+
+        /* Typed Message Section */
+        #message-section { text-align: center; max-width: 800px; margin: 0 auto; min-height: 100vh; }
+        #typed-message { font-size: 2.2rem; font-family: var(--font-serif); line-height: 1.6; }
+        .cursor {
+            display: inline-block; width: 3px; height: 2.2rem;
+            background-color: var(--accent-color); animation: blink 1s step-end infinite; vertical-align: bottom;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* === DYNAMIC MASONRY GALLERY === */
+        #gallery-section { padding: 80px 20px; }
+        .gallery-container {
+            column-count: 3; column-gap: 20px;
+            max-width: 1100px; width: 100%; margin: 50px auto 0;
+        }
+        .gallery-item {
+            break-inside: avoid; margin-bottom: 20px;
+            background: var(--card-bg); padding: 10px 10px 25px 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); border-radius: 4px;
+            cursor: pointer; transition: transform 0.4s ease, box-shadow 0.4s ease;
+            position: relative;
+        }
+        .gallery-item img {
+            width: 100%; display: block; border-radius: 2px;
+        }
+        .gallery-item:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5); z-index: 2;
+        }
+        
+        @media (max-width: 800px) { .gallery-container { column-count: 2; } }
+        @media (max-width: 500px) { .gallery-container { column-count: 1; } }
+
+        /* === LIGHTBOX (FULLSCREEN IMAGE) === */
+        #lightbox {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95);
+            z-index: 9999; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(5px);
+        }
+        #lightbox.show { display: flex; opacity: 1; }
+        #lightbox-img { max-width: 90%; max-height: 80vh; border-radius: 4px; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+        
+        .lb-btn {
+            position: absolute; background: transparent; border: none;
+            color: #fff; font-size: 2.5rem; cursor: pointer;
+            transition: color 0.3s ease; padding: 20px; user-select: none;
+        }
+        .lb-btn:hover { color: var(--accent-color); }
+        #lb-close { top: 20px; right: 30px; font-size: 3rem; }
+        #lb-prev { left: 20px; top: 50%; transform: translateY(-50%); }
+        #lb-next { right: 20px; top: 50%; transform: translateY(-50%); }
+        #lb-counter {
+            position: absolute; bottom: 30px; left: 50%;
+            transform: translateX(-50%); color: #fff;
+            font-family: var(--font-sans); letter-spacing: 2px;
+        }
+
+        /* === INTERACTIVE CAKE === */
+        #cake-section { min-height: 80vh; text-align: center; }
+        .cake-instructions { margin-bottom: 60px; font-size: 1.2rem; letter-spacing: 1px; opacity: 0.7; }
+        .cake { position: relative; width: 240px; height: 180px; margin: 0 auto; }
+        .tier {
+            position: absolute; left: 50%; transform: translateX(-50%);
+            background: #f8e1e7; border-radius: 8px;
+            box-shadow: inset 0 -15px rgba(0,0,0,0.05), 0 10px 15px rgba(0,0,0,0.3);
+        }
+        .tier-bottom { bottom: 0; width: 240px; height: 100px; background: #e6c8b3; }
+        .tier-top { bottom: 100px; width: 180px; height: 80px; background: #f4e8e1; }
+        .drip { position: absolute; top: 0; width: 100%; height: 25px; background: #fff; border-radius: 8px 8px 15px 15px; }
+        
+        .candles {
+            position: absolute; bottom: 180px; left: 50%; transform: translateX(-50%);
+            width: 120px; display: flex; justify-content: space-between;
+        }
+        .candle { width: 12px; height: 45px; background: linear-gradient(to right, #f48fb1, #f06292); border-radius: 3px; position: relative; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); }
+        .flame {
+            width: 18px; height: 28px; background: #ffca28; border-radius: 50% 50% 20% 20%;
+            position: absolute; top: -30px; left: -3px; cursor: pointer;
+            box-shadow: 0 0 20px #ffca28, 0 0 40px #ffb300; animation: flicker 0.6s infinite alternate; transition: all 0.3s ease;
+        }
+        .flame::after { content: ''; position: absolute; top: 40%; left: 20%; width: 60%; height: 50%; background: #fff; border-radius: 50%; opacity: 0.7; }
+        .flame.out { opacity: 0; transform: scale(0); pointer-events: none; }
+        @keyframes flicker {
+            0% { transform: scale(1) rotate(-1deg); box-shadow: 0 0 15px #ffca28; }
+            100% { transform: scale(1.05) rotate(1deg); box-shadow: 0 0 25px #ffca28, 0 0 40px #ffb300; }
+        }
+        .wish-text { font-size: 3rem; margin-top: 50px; opacity: 0; transform: translateY(20px); transition: all 1s ease; text-shadow: 0 0 20px rgba(212, 163, 115, 0.8); }
+        .wish-text.show { opacity: 1; transform: translateY(0); }
+
+        /* === PERSONAL MESSAGE === */
+        #personal-letter { padding: 100px 20px; }
+        .letter-card {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px; padding: 60px 40px; max-width: 800px; width: 100%;
+            text-align: center; backdrop-filter: blur(10px); box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            margin: 0 auto;
+        }
+        .letter-card h2 { font-size: 2.5rem; margin-bottom: 30px; }
+        .letter-card p { font-size: 1.2rem; line-height: 1.8; color: #d8d8d8; margin-bottom: 20px; font-family: var(--font-serif); }
+        .letter-signature { margin-top: 40px; font-size: 2rem; }
+
+        /* === FINAL SECTION === */
+        #outro { text-align: center; min-height: 60vh; }
+        #outro h2 { font-size: 2.5rem; margin-bottom: 15px; line-height: 1.4;}
+        #outro p { font-size: 1.2rem; opacity: 0.8; margin-bottom: 40px; }
+
+        @media (max-width: 768px) {
+            #landing h1 { font-size: 2.5rem; }
+            #typed-message { font-size: 1.5rem; }
+            .letter-card { padding: 40px 20px; }
+            .wish-text { font-size: 2rem; }
+            .lb-btn { padding: 10px; }
+            #lb-prev, #lb-next { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Audio player (Hidden) -->
+    <audio id="bg-music" loop></audio>
+
+    <!-- Floating Background Particles -->
+    <div id="particle-container"></div>
+
+    <!-- LANDING SECTION -->
+    <section id="landing">
+        <h1>Happy Birthday, <br><span class="script-text" id="landing-name"></span></h1>
+        <p>Today is all about you.</p>
+        <button class="btn" id="open-btn">Open Your Surprise</button>
+    </section>
+
+    <!-- MAIN EXPERIENCE (Hidden initially) -->
+    <div id="main-content">
+        
+        <!-- TYPING MESSAGE -->
+        <section id="message-section" class="fade-in-section">
+            <div style="text-align: left; max-width: 100%;">
+                <span id="typed-message"></span><span class="cursor"></span>
+            </div>
+        </section>
+
+        <!-- DYNAMIC MEMORY GALLERY -->
+        <section id="gallery-section" class="fade-in-section">
+            <h2 class="script-text" style="font-size: 3rem; text-align: center;">Moments to Cherish</h2>
+            <div class="gallery-container" id="gallery-container"></div>
+        </section>
+
+        <!-- INTERACTIVE CAKE -->
+        <section id="cake-section" class="fade-in-section">
+            <p class="cake-instructions">Tap the candles to blow them out.</p>
+            <div class="cake">
+                <div class="candles">
+                    <div class="candle"><div class="flame"></div></div>
+                    <div class="candle"><div class="flame"></div></div>
+                    <div class="candle"><div class="flame"></div></div>
+                </div>
+                <div class="tier tier-top"><div class="drip"></div></div>
+                <div class="tier tier-bottom"><div class="drip"></div></div>
+            </div>
+            <div class="wish-text script-text" id="wish-text">Make a wish ✨</div>
+        </section>
+
+        <!-- PERSONAL MESSAGE -->
+        <section id="personal-letter" class="fade-in-section">
+            <div class="letter-card">
+                <h2 id="personal-title"></h2>
+                <div id="personal-paragraphs"></div>
+                <div class="letter-signature script-text" id="personal-signature"></div>
+            </div>
+        </section>
+
+        <!-- OUTRO -->
+        <section id="outro" class="fade-in-section">
+            <h2>Once again, Happy Birthday,<br><span class="script-text" id="outro-name"></span></h2>
+            <p id="outro-msg"></p>
+            <button class="btn" id="replay-btn">Replay the Surprise</button>
+        </section>
+
+    </div>
+
+    <!-- LIGHTBOX OVERLAY -->
+    <div id="lightbox">
+        <button class="lb-btn" id="lb-close">&times;</button>
+        <button class="lb-btn" id="lb-prev">&#10094;</button>
+        <img id="lightbox-img" src="" alt="Enlarged memory">
+        <button class="lb-btn" id="lb-next">&#10095;</button>
+        <div id="lb-counter"></div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        // ======================================================================
+        // EASY CUSTOMIZATION SECTION
+        // ======================================================================
+        const CONFIG = {
+            personName: "Jaan E Maan aka AUSS ❤️",
+            typingMessage: "Happy Birthday, Jaan E Maan aka AUSS ❤️!\n\nI hope this year brings you happiness, peace, unforgettable memories, and many reasons to smile.",
+            personalMessageTitle: "A Little Message For You",
+            personalMessageParagraphs: [
+                "I wanted to take a moment to remind you how truly special you are. You have this incredible way of bringing light into the lives of the people around you, and today is the perfect day to celebrate that.",
+                "I hope you always find the courage to chase your dreams, the strength to overcome any hurdles, and the warmth of unconditional love wherever you go. Take a pause today, look back at how far you've come, and be proud.",
+                "Keep shining, keep smiling, and never forget how loved you are."
+            ],
+            personalMessageSignature: "With all my heart,",
+            outroMessage: "May your next chapter be even better than the last.",
+            musicFile: "", // Add a filename here like "song.mp3" to enable music
+            photos: [
+                "photos/1.jpg",
+                "photos/2.jpg",
+                "photos/3.jpg",
+                "photos/4.jpg",
+                "photos/5.jpg",
+                "photos/6.jpg",
+                "photos/7.jpg",
+                "photos/8.jpg",
+                "photos/9.jpg",
+                "photos/10.jpg",
+                "photos/11.jpg",
+                "photos/12.jpg",
+                "photos/13.jpg",
+                "photos/14.jpg",
+                "photos/15.jpg",
+                "photos/16.jpg",
+                "photos/17.jpg",
+                "photos/18.jpg",
+                "photos/19.jpg",
+                "photos/20.jpg",
+                "photos/21.jpg",
+                "photos/22.jpg",
+                "photos/23.jpg",
+                "photos/24.jpg",
+                "photos/25.jpg",
+                "photos/26.jpg",
+                "photos/27.jpg",
+                "photos/28.jpg",
+                "photos/29.jpg",
+                "photos/baby.jpg",
+                "photos/hbd.jpg",
+                "photos/hbd2.jpg"
+            ]
+        };
+        // ======================================================================
+        // END OF CUSTOMIZATION 
+        // ======================================================================
+
+        document.addEventListener("DOMContentLoaded", () => {
+            
+            // --- 1. POPULATE TEXT CONTENT (Wrapped in try-catch to prevent layout crash) ---
+            try {
+                document.getElementById('landing-name').innerHTML = CONFIG.personName;
+                document.getElementById('personal-title').innerHTML = CONFIG.personalMessageTitle;
+                document.getElementById('personal-signature').innerHTML = CONFIG.personalMessageSignature;
+                document.getElementById('outro-name').innerHTML = CONFIG.personName;
+                document.getElementById('outro-msg').innerHTML = CONFIG.outroMessage;
+                
+                const paragraphsContainer = document.getElementById('personal-paragraphs');
+                (CONFIG.personalMessageParagraphs || []).forEach(pText => {
+                    const p = document.createElement('p');
+                    p.textContent = pText;
+                    paragraphsContainer.appendChild(p);
+                });
+
+                // Build Gallery
+                const galleryContainer = document.getElementById('gallery-container');
+                window.processedPhotos = [];
+                (CONFIG.photos || []).forEach((photo, index) => {
+                    const imageSrc = photo; // <--- The Fix
+                    window.processedPhotos.push(imageSrc);
+                    const div = document.createElement('div');
+                    div.className = 'gallery-item';
+                    div.innerHTML = `<img src="${imageSrc}" alt="Memory ${index + 1}" loading="lazy">`;
+                    div.addEventListener('click', () => openLightbox(index));
+                    galleryContainer.appendChild(div);
+                });
+            } catch (error) {
+                console.error("Error setting up DOM content:", error);
+            }
+
+            // --- 2. THE BUTTON FIX: REVEAL AND SCROLL LOGIC ---
+            const openBtn = document.getElementById('open-btn');
+            const mainContent = document.getElementById('main-content');
+            const messageSection = document.getElementById('message-section');
+            const bgMusic = document.getElementById('bg-music');
+
+            if (openBtn && mainContent && messageSection) {
+                openBtn.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent accidental form submission or link jumping
+                    console.log("Surprise button successfully clicked."); // Debug log
+
+                    // Play music if a file was provided
+                    if (CONFIG.musicFile && CONFIG.musicFile.trim() !== "") {
+                        if (bgMusic && bgMusic.paused) {
+                            bgMusic.src = CONFIG.musicFile;
+                            bgMusic.play().catch(err => console.warn("Browser blocked autoplay:", err));
+                        }
+                    }
+
+                    // STEP 1: Make the section display in the DOM
+                    mainContent.style.display = 'block';
+
+                    // STEP 2: Force browser reflow to register the display change (Crucial CSS Fix)
+                    mainContent.offsetHeight;
+
+                    // STEP 3: Trigger the opacity transition
+                    mainContent.style.opacity = '1';
+
+                    // STEP 4: Smooth scroll down to the newly revealed section
+                    messageSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                    // STEP 5: Start animations (prevent double firing)
+                    if (!window.animationsStarted) {
+                        window.animationsStarted = true;
+                        initScrollObserver();
+                        // Delay typing slightly so it types while they scroll down
+                        setTimeout(startTyping, 600);
+                    }
+                });
+            } else {
+                console.error("Required elements for button click were not found in the DOM.");
+            }
+
+            // --- 3. TYPING EFFECT ---
+            const textElement = document.getElementById('typed-message');
+            let typeIndex = 0;
+            function startTyping() {
+                if (typeIndex < CONFIG.typingMessage.length) {
+                    let char = CONFIG.typingMessage.charAt(typeIndex);
+                    textElement.innerHTML += (char === '\n') ? '<br>' : char;
+                    typeIndex++;
+                    setTimeout(startTyping, 60);
+                }
+            }
+
+            // --- 4. SCROLL REVEAL (INTERSECTION OBSERVER) ---
+            function initScrollObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('is-visible');
+                        }
+                    });
+                }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+                document.querySelectorAll('.fade-in-section').forEach(section => observer.observe(section));
+            }
+
+            // --- 5. INTERACTIVE CAKE ---
+            const flames = document.querySelectorAll('.flame');
+            const wishText = document.getElementById('wish-text');
+            let activeFlames = flames.length;
+
+            flames.forEach(flame => {
+                flame.addEventListener('click', function() {
+                    if (!this.classList.contains('out')) {
+                        this.classList.add('out');
+                        activeFlames--;
+                        if (activeFlames === 0) triggerCelebration();
+                    }
+                });
+            });
+
+            function triggerCelebration() {
+                wishText.classList.add('show');
+                // Check if Confetti loaded properly (prevents crash if offline/adblock)
+                if (typeof confetti !== 'undefined') {
+                    let end = Date.now() + 3000;
+                    (function frame() {
+                        confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#d4a373', '#f4e8e1', '#ff9a9e'] });
+                        confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#d4a373', '#f4e8e1', '#ff9a9e'] });
+                        if (Date.now() < end) requestAnimationFrame(frame);
+                    }());
+                } else {
+                    console.warn("Confetti script missing or blocked. Skipping confetti animation.");
+                }
+            }
+
+            // --- 6. LIGHTBOX LOGIC ---
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            const lbCounter = document.getElementById('lb-counter');
+            let currentImageIndex = 0;
+
+            function openLightbox(index) {
+                currentImageIndex = index;
+                updateLightbox();
+                lightbox.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeLightbox() {
+                lightbox.classList.remove('show');
+                document.body.style.overflow = 'auto';
+            }
+
+            function updateLightbox() {
+                if(window.processedPhotos && window.processedPhotos.length > 0) {
+                    lightboxImg.src = window.processedPhotos[currentImageIndex];
+                    lbCounter.innerText = `${currentImageIndex + 1} / ${window.processedPhotos.length}`;
+                }
+            }
+
+            function prevImage() {
+                currentImageIndex = (currentImageIndex === 0) ? window.processedPhotos.length - 1 : currentImageIndex - 1;
+                updateLightbox();
+            }
+
+            function nextImage() {
+                currentImageIndex = (currentImageIndex === window.processedPhotos.length - 1) ? 0 : currentImageIndex + 1;
+                updateLightbox();
+            }
+
+            if(document.getElementById('lb-close')) document.getElementById('lb-close').addEventListener('click', closeLightbox);
+            if(document.getElementById('lb-prev')) document.getElementById('lb-prev').addEventListener('click', prevImage);
+            if(document.getElementById('lb-next')) document.getElementById('lb-next').addEventListener('click', nextImage);
+            
+            lightbox.addEventListener('click', (e) => { if(e.target === lightbox) closeLightbox(); });
+
+            document.addEventListener('keydown', (e) => {
+                if (!lightbox.classList.contains('show')) return;
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === 'ArrowLeft') prevImage();
+                if (e.key === 'ArrowRight') nextImage();
+            });
+
+            // --- 7. PARTICLE BACKGROUND ---
+            const particleContainer = document.getElementById('particle-container');
+            function createParticle() {
+                if (!particleContainer) return;
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const size = Math.random() * 6 + 2;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}vw`;
+                particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
+                particle.style.opacity = Math.random() * 0.5 + 0.2;
+                particleContainer.appendChild(particle);
+                setTimeout(() => particle.remove(), 20000);
+            }
+            setInterval(createParticle, 400);
+            for(let i=0; i<30; i++) createParticle();
+
+            // --- 8. REPLAY FUNCTIONALITY ---
+            const replayBtn = document.getElementById('replay-btn');
+            if(replayBtn) {
+                replayBtn.addEventListener('click', () => {
+                    // Scroll smoothly back to top
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    
+                    // Wait for scroll to finish, then hide the content
+                    setTimeout(() => {
+                        mainContent.style.opacity = '0';
+                        setTimeout(() => {
+                            mainContent.style.display = 'none';
+                            textElement.innerHTML = ''; 
+                            typeIndex = 0;
+                            window.animationsStarted = false;
+                            
+                            flames.forEach(f => f.classList.remove('out'));
+                            activeFlames = flames.length; 
+                            wishText.classList.remove('show');
+                            document.querySelectorAll('.fade-in-section').forEach(s => s.classList.remove('is-visible'));
+                            
+                            if (bgMusic && !bgMusic.paused) {
+                                bgMusic.pause();
+                                bgMusic.currentTime = 0;
+                            }
+                        }, 1000);
+                    }, 800);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
